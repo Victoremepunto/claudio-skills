@@ -187,8 +187,8 @@ def main():
         epilog=__doc__
     )
 
-    parser.add_argument('--component', type=str, required=True,
-                       help='Component name')
+    parser.add_argument('--component', type=str, default=None,
+                       help='Component name (required for RHSA releases with a CVE file)')
     parser.add_argument('--version', type=str, required=True,
                        help='Semantic version (e.g., 3.2.5)')
     parser.add_argument('--snapshot', type=str, required=True,
@@ -197,8 +197,8 @@ def main():
                        help='Release plan name')
     parser.add_argument('--release-name', type=str, required=True,
                        help='Production release name')
-    parser.add_argument('--accelerator', type=str, required=True,
-                       help='Accelerator/variant type for template substitution')
+    parser.add_argument('--accelerator', type=str, default='',
+                       help='Accelerator/variant type for template substitution (e.g. CUDA, ROCm)')
     parser.add_argument('--namespace', type=str, default='my-namespace',
                        help='Kubernetes namespace (default: my-namespace)')
     parser.add_argument('--release-notes-template', type=str, required=True,
@@ -214,6 +214,10 @@ def main():
                        help='Output file (default: stdout)')
 
     args = parser.parse_args()
+
+    if args.release_type == 'RHSA' and args.cves_file and args.component is None:
+        print("Error: --component is required for RHSA releases with a CVE file", file=sys.stderr)
+        sys.exit(1)
 
     # Load release notes template
     release_notes_template = load_release_notes_template(args.release_notes_template)
